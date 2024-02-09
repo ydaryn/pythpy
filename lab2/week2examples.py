@@ -553,7 +553,6 @@ for x in range(6):
 else:
   print("Finally finished!")   #If the loop breaks, the else block is not executed.         
           
-
 adj = ["red", "big", "tasty"]
 fruits = ["apple", "banana", "cherry"]
 for x in adj:
