@@ -3,7 +3,7 @@ from config import load_config
 
 
 def collecting_info():
-    """Извлекать данные из таблицы поставщиков"""
+    """Извлекать данные из таблицы"""
     config = load_config()
     try:
         with psycopg2.connect(**config) as conn:
@@ -30,12 +30,11 @@ def update_info(user_id, name, phone_number):
     try:
         with psycopg2.connect(**config) as conn:
             with conn.cursor() as cur:
-                # Выполнение SQL-запроса UPDATE
+                #UPDATE
                 cur.execute(sql, (name, phone_number, user_id))
                 update_row_count = cur.rowcount
 
-            # Подтверждение изменений в базе данных
-            conn.commit()
+            conn.commit() # подтверждение обновы в дб
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
@@ -64,19 +63,19 @@ def delete_info(user_id):
 
 
 def update_or_insert_contact(name, phone_number):
-    """Обновление номера телефона существующего контакта или вставка нового контакта"""
+    """Обновление номера существующего контакта или вставка нового"""
     config = load_config()
     try:
         with psycopg2.connect(**config) as conn:
             with conn.cursor() as cur:
-                # Проверяем существует ли контакт с таким именем
+                #has contact or no
                 cur.execute("SELECT user_id FROM phonebook WHERE name = %s", (name,))
                 existing_contact = cur.fetchone()
                 if existing_contact:
-                    # Если контакт существует, обновляем его номер телефона
+                    #if exists, update
                     cur.execute("UPDATE phonebook SET phone_number = %s WHERE name = %s", (phone_number, name))
                 else:
-                    # Если контакт не существует, вставляем новый контакт
+                    # if no exists, create
                     cur.execute("INSERT INTO phonebook (name, phone_number) VALUES (%s, %s) RETURNING user_id",
                                 (name, phone_number))
                     user_id = cur.fetchone()[0]
@@ -109,15 +108,15 @@ def insert_or_update_user(name, phone_number):
     try:
         with psycopg2.connect(**config) as conn:
             with conn.cursor() as cur:
-                # Проверяем существует ли контакт с таким именем
+                # есть ли контакт
                 cur.execute("SELECT user_id FROM phonebook WHERE name = %s", (name,))
                 existing_contact = cur.fetchone()
                 if existing_contact:
-                    # Если контакт существует, обновляем его номер телефона
+                    # если да, обновляем
                     cur.execute("UPDATE phonebook SET phone_number = %s WHERE name = %s", (phone_number, name))
                     print("Контакт успешно обновлен.")
                 else:
-                    # Если контакт не существует, вставляем новый контакт
+                    # если нет, новый
                     cur.execute("INSERT INTO phonebook (name, phone_number) VALUES (%s, %s)", (name, phone_number))
                     print("Новый контакт успешно добавлен.")
                 conn.commit()
@@ -134,7 +133,7 @@ def insert_many_users(users):
             with conn.cursor() as cur:
                 for user in users:
                     name, phone_number = user
-                    if len(str(phone_number)) != 10:  # Checking correctness of phone number
+                    if len(str(phone_number)) != 11:  # Checking correctness of phone number
                         incorrect_data.append(user)
                     else:
                         cur.execute("INSERT INTO phonebook (name, phone_number) VALUES (%s, %s)", (name, phone_number))
@@ -146,7 +145,7 @@ def insert_many_users(users):
 
 
 def query_with_pagination(limit, offset):
-    """Запрос данных из таблиц с пагинацией (по лимиту и смещению)"""
+    """Запрос данных из таблиц пагинацией"""
     config = load_config()
     try:
         with psycopg2.connect(**config) as conn:
@@ -164,7 +163,7 @@ def query_with_pagination(limit, offset):
 
 def delete_by_username_or_phone(pattern): 
     """Удаление данных из таблиц по имени пользователя или номеру телефона""" 
-    config = load_config()  # Предположим, что функция load_config определена где-то в вашем коде 
+    config = load_config() 
     try: 
         with psycopg2.connect(**config) as conn: 
             with conn.cursor() as cur: 
@@ -186,7 +185,7 @@ if __name__ == '__main__':
     if operation == "1":
         name = input("Enter new contact name : ")
         phone_number = int(input("Enter a phone number: "))
-        user_id = update_or_insert_contact(name, phone_number)  # Пример вызова функции
+        user_id = update_or_insert_contact(name, phone_number) 
         if user_id is not None:
             print("Contact is added or updated. ID:", user_id)
         else:
